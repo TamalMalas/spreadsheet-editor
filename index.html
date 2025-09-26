@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Sheet Editor Simulator</title>
+    <title>AI Sheet Editor (Vercel Ready)</title>
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Configure Tailwind for Inter font and custom colors -->
@@ -15,7 +15,7 @@
                         sans: ['Inter', 'sans-serif'],
                     },
                     colors: {
-                        primary: '#059669', // Darker Emerald for Academic feel
+                        primary: '#059669', // Darker Emerald
                         secondary: '#FBBF24', // Amber Yellow
                         darkbg: '#1F2937', // Dark Gray
                     }
@@ -36,10 +36,10 @@
             border-radius: 12px;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
-        .update-button {
+        .action-button {
             transition: all 0.15s ease-in-out;
         }
-        .update-button:hover {
+        .action-button:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.4), 0 2px 4px -1px rgba(5, 150, 105, 0.2);
         }
@@ -47,41 +47,39 @@
             min-width: 60px;
             text-align: right;
         }
-        .table-data-cell-center {
-            text-align: center;
-        }
     </style>
 </head>
 <body>
 
     <div class="container-card">
         <header class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-800">AI Academic Record Editor (Simulator)</h1>
-            <p class="text-sm text-gray-500 mt-1">Simulating complex academic sheet structure for multi-row updates.</p>
+            <h1 class="text-3xl font-bold text-gray-800">AI Google Sheet Editor (Vercel Ready)</h1>
+            <p class="text-sm text-gray-500 mt-1">Real-time sheet interaction via secured Vercel Serverless Functions.</p>
         </header>
 
-        <!-- Google Sheets API Limitation Note -->
+        <!-- Live Connection Note -->
         <div class="p-4 mb-6 bg-blue-100 border-l-4 border-blue-500 rounded-lg text-sm text-gray-700">
-            <p class="font-semibold">⚙️ Public Connection Mode (Simulated):</p>
-            <p>Authorization is granted automatically (simulating a Service Account with public write permissions). Use the **Fetch Sheet Preview** button below to simulate checking the connection.</p>
+            <p class="font-semibold">🔗 Live Connection Status (Target Sheet is Fixed):</p>
+            <p id="connectionStatus" class="mt-1 font-medium text-blue-700">Attempting to fetch data...</p>
         </div>
 
         <section class="flex flex-col md:flex-row gap-6 mb-8">
             <!-- Input Panel -->
             <div class="md:w-1/2">
                 
-                <!-- 1. Connection -->
-                <h3 class="text-lg font-semibold text-gray-800 mb-3">1. Sheet Connection (Auto-Authorized)</h3>
+                <!-- 1. Connection (Fixed) -->
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">1. Sheet Connection</h3>
                 
                 <div class="mb-6 flex items-end gap-2">
                     <div class="flex-grow">
-                        <label for="sheetLink" class="block text-sm font-medium text-gray-700 mb-1">Sheet Link (Paste the full link here)</label>
-                        <input type="text" id="sheetLink" value="https://docs.google.com/spreadsheets/d/mock-academic-sheet"
-                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary bg-gray-50">
+                        <label for="sheetLink" class="block text-sm font-medium text-gray-700 mb-1">Target Sheet ID (Fixed in backend function)</label>
+                        <input type="text" id="sheetLink" disabled
+                            value="1oinFFhzNE7-tWzIdfjqGc1QwXO3-FJOCAUuFNeFDpI4"
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary bg-gray-100">
                     </div>
-                    <button onclick="fetchSheetPreview()" id="previewButton"
-                        class="update-button bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold h-[46px] whitespace-nowrap">
-                        Fetch Sheet Preview
+                    <button onclick="fetchSheetData()" id="previewButton" disabled
+                        class="action-button bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold h-[46px] whitespace-nowrap">
+                        Refetch Data
                     </button>
                 </div>
 
@@ -95,9 +93,9 @@
                         class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary resize-none"></textarea>
                 </div>
                 
-                <button onclick="handleSheetUpdate()" id="updateButton"
-                    class="update-button w-full bg-primary text-white py-3 rounded-lg font-semibold flex items-center justify-center">
-                    <span id="buttonText">Analyze & Perform Multi-Row Update</span>
+                <button onclick="handleSheetUpdate()" id="updateButton" disabled
+                    class="action-button w-full bg-primary text-white py-3 rounded-lg font-semibold flex items-center justify-center">
+                    <span id="buttonText">Analyze & Update Live Sheet</span>
                     <svg id="spinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -108,11 +106,11 @@
                 <div id="resultMessage" class="mt-4 p-3 hidden rounded-lg text-sm"></div>
             </div>
 
-            <!-- Simulated Sheet Data Display -->
+            <!-- Sheet Data Display -->
             <div class="md:w-1/2">
-                <h2 class="text-lg font-semibold text-gray-800 mb-3">Simulated Academic Sheet Data</h2>
+                <h2 class="text-lg font-semibold text-gray-800 mb-3">Live Sheet Data Preview (<span id="sheetName">Loading...</span>)</h2>
                 <div id="sheetDataDisplay" class="bg-gray-50 p-4 border border-gray-200 rounded-lg overflow-x-auto max-h-[450px]">
-                    <!-- Table will be rendered here -->
+                    <p class="text-center text-gray-500">Awaiting data fetch...</p>
                 </div>
             </div>
         </section>
@@ -125,30 +123,21 @@
     </div>
 
     <script type="module">
-        // Global variables provided by the Canvas environment for authentication
-        const apiKey = "";
+        // Global variables and constants
+        const apiKey = ""; // Canvas will inject this for Gemini API calls
         const API_URL_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent';
         
-        // --- 1. MOCK SHEET DATA (Simulated Google Sheet Content - New Academic Structure) ---
-        // Internal schema uses ca1-ca4 for all assessments, with null/0 for unused fields
-        let SHEET_DATA = [
-            // Dummy data for a different student
-            { roll: 'CSE/24/001', subject: 'Mathematics-III', held: 20, attended: 15, ca1: 20, ca2: 20, ca3: 15, ca4: 15 },
-            { roll: 'CSE/24/001', subject: 'IT Workshop', held: 20, attended: 18, ca1: 30, ca2: 30, ca3: null, ca4: null },
-            // Data for the target student (initial state - all zero/null)
-            { roll: 'CSE/24/063', subject: 'Mathematics-III', held: 20, attended: 0, ca1: 0, ca2: 0, ca3: 0, ca4: 0 },
-            { roll: 'CSE/24/063', subject: 'Analog and Digital Electronics', held: 20, attended: 0, ca1: 0, ca2: 0, ca3: 0, ca4: 0 },
-            { roll: 'CSE/24/063', subject: 'Economics for Engineers', held: 20, attended: 0, ca1: 0, ca2: 0, ca3: 0, ca4: 0 },
-            { roll: 'CSE/24/063', subject: 'Data Structure & Algorithms', held: 20, attended: 0, ca1: 0, ca2: 0, ca3: 0, ca4: 0 },
-            { roll: 'CSE/24/063', subject: 'Computer Organisation', held: 20, attended: 0, ca1: 0, ca2: 0, ca3: 0, ca4: 0 },
-            // Lab Subjects: ca3/ca4 fields are NULL, ca1/ca2 hold PCA1/PCA2
-            { roll: 'CSE/24/063', subject: 'Analog and Digital Electronics Lab', held: 20, attended: 0, ca1: 0, ca2: 0, ca3: null, ca4: null },
-            { roll: 'CSE/24/063', subject: 'Data Structure & Algorithms Lab', held: 20, attended: 0, ca1: 0, ca2: 0, ca3: null, ca4: null },
-            { roll: 'CSE/24/063', subject: 'Computer Organisation Lab', held: 20, attended: 0, ca1: 0, ca2: 0, ca3: null, ca4: null },
-            { roll: 'CSE/24/063', subject: 'IT Workshop', held: 20, attended: 0, ca1: 0, ca2: 0, ca3: null, ca4: null },
-        ];
+        // Internal state
+        let sheetDataState = []; // Holds the structured data for rendering and comparison
+        let rawSheetData = []; // Holds the raw 2D array fetched from the Sheet API
 
-        // --- 2. UI Elements & State ---
+        // Sheet details (Fixed in this version)
+        const TARGET_SHEET_NAME = '3rd SEM';
+        const TARGET_STUDENT_ROLL = 'CSE/24/063';
+        const HEADER_ROW = 0; // Assuming row 1 (index 0) is the header
+        const DATA_START_ROW = 1; // Data starts at row 2 (index 1)
+        
+        // UI Elements
         const sheetDataDisplay = document.getElementById('sheetDataDisplay');
         const promptTextarea = document.getElementById('promptText');
         const updateButton = document.getElementById('updateButton');
@@ -157,14 +146,61 @@
         const resultMessage = document.getElementById('resultMessage');
         const llmDebugOutput = document.getElementById('llmDebugOutput');
         const previewButton = document.getElementById('previewButton');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const sheetNameDisplay = document.getElementById('sheetName');
 
         let isUpdating = false;
-        let isPreviewing = false;
-        // Public sheet means we assume it's authorized from the start
-        let isAuthorized = true; 
+        let isFetching = false;
+        
+        // Helper function for UI messages
+        function showMessage(text, className) {
+            resultMessage.innerHTML = text;
+            resultMessage.className = `mt-4 p-3 rounded-lg text-sm ${className}`;
+            resultMessage.classList.remove('hidden');
+        }
 
-        // --- 3. Rendering Function ---
+        // --- Data Mapping and Preparation ---
+        
+        // This function maps the 2D array data from the Google Sheet into a structured internal state
+        function mapRawDataToState(rawData) {
+            if (!rawData || rawData.length < 2) return [];
+
+            const headers = rawData[HEADER_ROW].map(h => h.trim());
+            const dataRows = rawData.slice(DATA_START_ROW);
+            
+            // Expected headers/indices:
+            // 0: Roll, 1: Subject, 2: Held, 3: Attended, 4: CA1, 5: CA2, 6: CA3, 7: CA4
+
+            return dataRows.map(row => {
+                // Ensure values are numbers where expected, and handle undefined/null for display
+                // Note: ca3 and ca4 are being treated as potentially nullable/empty in the sheet
+                const ca3Value = row[6] === undefined || row[6] === '' ? null : parseInt(row[6]) || 0;
+                const ca4Value = row[7] === undefined || row[7] === '' ? null : parseInt(row[7]) || 0;
+
+                return {
+                    roll: row[0] || '',
+                    subject: row[1] || '',
+                    held: parseInt(row[2]) || 0,
+                    attended: parseInt(row[3]) || 0,
+                    ca1: parseInt(row[4]) || 0,
+                    ca2: parseInt(row[5]) || 0,
+                    ca3: ca3Value,
+                    ca4: ca4Value,
+                    // Store the starting row index in the sheet for the update API call
+                    sheetRowIndex: dataRows.indexOf(row) + DATA_START_ROW + 1 // +1 for 1-based indexing
+                };
+            }).filter(row => row.roll && row.subject); // Filter out empty or incomplete rows
+        }
+
+        // --- Rendering Function ---
         function renderSheetData() {
+            sheetNameDisplay.textContent = TARGET_SHEET_NAME;
+
+            if (sheetDataState.length === 0) {
+                sheetDataDisplay.innerHTML = `<p class="text-center text-gray-500 py-8">No data available. Attempt fetching or check server logs.</p>`;
+                return;
+            }
+
             let html = `
                 <table class="min-w-full divide-y divide-gray-200 text-left">
                     <thead class="bg-gray-100 sticky top-0">
@@ -182,28 +218,32 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
             `;
-            SHEET_DATA.forEach(row => {
-                const attendancePercentage = row.held > 0 ? ((row.attended / row.held) * 100).toFixed(0) : 0;
+            
+            sheetDataState.forEach(row => {
+                const attended = row.attended || 0;
+                const held = row.held || 0;
+                const attendancePercentage = held > 0 ? ((attended / held) * 100).toFixed(0) : 0;
                 const attendanceColor = attendancePercentage < 75 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800';
+                const isTargetRow = row.roll === TARGET_STUDENT_ROLL;
 
-                // Display logic based on subject type (Theory vs Lab)
-                const isLab = row.ca3 === null; 
+                const ca3Display = row.ca3 === null ? '-' : row.ca3;
+                const ca4Display = row.ca4 === null ? '-' : row.ca4;
 
                 html += `
-                    <tr class="${row.roll === 'CSE/24/063' ? 'bg-indigo-50/50' : ''}">
+                    <tr class="${isTargetRow ? 'bg-indigo-50/50' : ''}">
                         <td class="px-3 py-2 whitespace-nowrap text-xs font-medium text-gray-900">${row.roll}</td>
                         <td class="px-3 py-2 text-sm text-gray-700">${row.subject}</td>
-                        <td class="px-3 py-2 table-data-cell text-sm text-gray-500">${row.held}</td>
+                        <td class="px-3 py-2 table-data-cell text-sm text-gray-500">${held}</td>
                         <td class="px-3 py-2 table-data-cell whitespace-nowrap">
                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${attendanceColor}">
-                                ${row.attended}
+                                ${attended}
                             </span>
                         </td>
                         <td class="px-3 py-2 table-data-cell text-sm text-gray-500">${attendancePercentage}%</td>
                         <td class="px-3 py-2 table-data-cell text-sm text-gray-500">${row.ca1}</td>
                         <td class="px-3 py-2 table-data-cell text-sm text-gray-500">${row.ca2}</td>
-                        <td class="px-3 py-2 table-data-cell text-sm text-gray-500">${isLab ? '-' : row.ca3}</td>
-                        <td class="px-3 py-2 table-data-cell text-sm text-gray-500">${isLab ? '-' : row.ca4}</td>
+                        <td class="px-3 py-2 table-data-cell text-sm text-gray-500">${ca3Display}</td>
+                        <td class="px-3 py-2 table-data-cell text-sm text-gray-500">${ca4Display}</td>
                     </tr>
                 `;
             });
@@ -212,34 +252,11 @@
                 </table>
             `;
             sheetDataDisplay.innerHTML = html;
+            updateButton.disabled = false;
         }
 
-        // --- 4. Simulated Preview Function ---
-        window.fetchSheetPreview = function() {
-            if (isPreviewing) return;
+        // --- Vercel Serverless Function Communication ---
 
-            const sheetLink = document.getElementById('sheetLink').value;
-
-            isPreviewing = true;
-            previewButton.disabled = true;
-            previewButton.textContent = "Fetching...";
-            showMessage("Simulating secure connection to Google Sheets...", 'bg-yellow-100 text-yellow-800 border-l-4 border-secondary');
-
-            // Simulate network latency (2 seconds)
-            setTimeout(() => {
-                // In a real application, you would use the Sheets API (spreadsheets.get) here.
-                
-                isPreviewing = false;
-                previewButton.disabled = false;
-                previewButton.textContent = "Fetch Sheet Preview";
-
-                showMessage(`✅ Connection successful! Retrieved sheet metadata from: **${sheetLink}**. Ready to analyze prompt.`, 'bg-green-100 text-green-800 border-l-4 border-green-500');
-
-            }, 2000); 
-        }
-
-        // --- 5. Gemini API Call and Logic (Parser) ---
-        
         // Exponential backoff helper for fetch retries
         const withBackoff = async (fn, retries = 5, delay = 1000) => {
             for (let i = 0; i < retries; i++) {
@@ -252,25 +269,63 @@
             }
         };
 
+
+        // Function to fetch the current sheet data from Vercel Backend
+        window.fetchSheetData = async function() {
+            if (isFetching) return;
+
+            isFetching = true;
+            previewButton.disabled = true;
+            connectionStatus.textContent = "Fetching current data from Vercel...";
+            
+            try {
+                // Call the Vercel Serverless function for fetching
+                const response = await withBackoff(() => fetch('/api/sheet-fetch'));
+                const result = await response.json();
+                
+                if (!result.success || !result.data) {
+                    throw new Error(result.error || "Serverless function returned an error.");
+                }
+
+                rawSheetData = result.data;
+                sheetDataState = mapRawDataToState(rawSheetData);
+                renderSheetData();
+
+                connectionStatus.innerHTML = `✅ Connected to **${TARGET_SHEET_NAME}**. ${sheetDataState.length} records loaded.`;
+                showMessage("Successfully loaded sheet data from the live source.", 'bg-green-100 text-green-800 border-l-4 border-primary');
+
+            } catch (error) {
+                console.error("Fetch Sheet Error:", error);
+                connectionStatus.textContent = `❌ ERROR: Failed to fetch data. Check Vercel logs.`;
+                showMessage(`❌ Fetch Failed: ${error.message}. Ensure backend is deployed and authenticated.`, 'bg-red-100 text-red-800 border-l-4 border-red-500');
+            } finally {
+                isFetching = false;
+                previewButton.disabled = false;
+            }
+        }
+        
+        // --- Gemini API Call (Parser) ---
         async function parsePromptWithLLM(prompt) {
             const apiUrl = `${API_URL_BASE}?key=${apiKey}`;
 
-            // Updated System Instruction for the complex structure
             const systemInstruction = `You are a specialized academic data parser for a university grade sheet. The user provides raw text data for a student, identified by 'College Roll', broken down by subject.
             
             Target Sheet Columns (Internal Mapping): 'roll', 'subject', 'classes_held', 'classes_attended', 'ca1', 'ca2', 'ca3', 'ca4'.
             
             Mapping Rules:
             1. Roll Number: Must be consistent for all subjects.
-            2. Classes Held: If specified, use the number. If not, use the previous value (20 is the default).
+            2. Classes Held: Map directly.
             3. Classes Attended: Map directly.
-            4. Theory Subjects (e.g., Mathematics-III, Computer Organisation): Map 'CA1' to 'ca1', 'CA2' to 'ca2', 'CA3' to 'ca3', 'CA4' to 'ca4'.
-            5. Lab Subjects (end with 'Lab' or 'Workshop'): Map 'PCA1' to 'ca1' and 'PCA2' to 'ca2'. For these subjects, set 'ca3' and 'ca4' to 0, as they are not used.
-            6. Missing Fields: If the prompt omits an assessment field (e.g., CA3 or PCA2), set its corresponding output field (ca3 or ca2) to 0.
+            4. Theory Subjects (e.g., Mathematics-III, Computer Organisation): Map 'CA1' to 'ca1', 'CA2' to 'ca2'. If CA3/CA4 are missing, DO NOT include them in the JSON output, as the frontend will preserve the existing values.
+            5. Lab Subjects (end with 'Lab' or 'Workshop'): Map 'PCA1' to 'ca1' and 'PCA2' to 'ca2'. If PCA2 is missing, map ca2 to 0. DO NOT include ca3 or ca4 in the JSON output.
+            6. Look up the existing row index for each subject using the 'roll' and 'subject' keys in the provided sheet state. Include this index as 'sheetRowIndex' in your output object.
 
-            Your output must be a JSON array of update objects that strictly adheres to the provided schema.`;
+            CURRENT SHEET STATE (Use this to find the sheetRowIndex):
+            ${JSON.stringify(sheetDataState.filter(r => r.roll === TARGET_STUDENT_ROLL).map(r => ({ roll: r.roll, subject: r.subject, sheetRowIndex: r.sheetRowIndex })))}
             
-            // Define the JSON schema for structured output (must include all 8 fields)
+            Your output must be a JSON array of update objects that strictly adheres to the provided schema. Only include fields that are explicitly mentioned or derived (roll, subject, sheetRowIndex, held, attended, ca1, ca2). Only include ca3 and ca4 if they are explicitly mentioned in the prompt.`;
+            
+            // Define the JSON schema for structured output
             const responseSchema = {
                 type: "OBJECT",
                 properties: {
@@ -282,15 +337,15 @@
                             "properties": {
                                 "roll": { "type": "STRING", "description": "The student's roll number (e.g., 'CSE/24/063')." },
                                 "subject": { "type": "STRING", "description": "The subject title exactly as written in the prompt." },
+                                "sheetRowIndex": { "type": "INTEGER", "description": "The 1-based index of the row to update in the Google Sheet (e.g., 3)." },
                                 "classes_held": { "type": "INTEGER", "description": "The number of classes held." },
                                 "classes_attended": { "type": "INTEGER", "description": "The number of classes attended." },
                                 "ca1": { "type": "INTEGER", "description": "The mark for the first assessment (CA1 or PCA1)." },
                                 "ca2": { "type": "INTEGER", "description": "The mark for the second assessment (CA2 or PCA2)." },
-                                "ca3": { "type": "INTEGER", "description": "The mark for the third assessment (CA3 - 0 for Labs)." },
-                                "ca4": { "type": "INTEGER", "description": "The mark for the fourth assessment (CA4 - 0 for Labs)." }
+                                "ca3": { "type": "INTEGER", "description": "The mark for the third assessment (CA3 - only if present in prompt)." },
+                                "ca4": { "type": "INTEGER", "description": "The mark for the fourth assessment (CA4 - only if present in prompt)." }
                             },
-                            "required": ["roll", "subject", "classes_held", "classes_attended"],
-                            "propertyOrdering": ["roll", "subject", "classes_held", "classes_attended", "ca1", "ca2", "ca3", "ca4"]
+                            "required": ["roll", "subject", "sheetRowIndex", "classes_held", "classes_attended", "ca1", "ca2"]
                         }
                     }
                 }
@@ -317,40 +372,32 @@
                 }
 
                 const result = await response.json();
+                const jsonString = result.candidates?.[0]?.content?.parts?.[0]?.text;
                 
-                if (!result.candidates || result.candidates.length === 0) {
-                    throw new Error("Gemini returned no candidates.");
+                if (!jsonString) {
+                    throw new Error("Gemini returned no valid JSON content.");
                 }
 
-                const jsonString = result.candidates[0].content.parts[0].text;
-                
-                // *** FIX: Clean up markdown fences from the LLM output for robust JSON parsing ***
+                // Clean up markdown fences
                 let cleanedJsonString = jsonString.trim();
-                // Remove outer markdown code block (```json ... ```)
                 if (cleanedJsonString.startsWith('```')) {
-                    // This regex handles ````json` and ```` at the start/end
-                    cleanedJsonString = cleanedJsonString.replace(/```json\s*/, '').replace(/```$/, '');
+                    cleanedJsonString = cleanedJsonString.replace(/```json\s*/, '').replace(/```$/, '').trim();
                 }
-                cleanedJsonString = cleanedJsonString.trim();
-                // *** END FIX ***
                 
-                // Display raw LLM output for debugging
                 llmDebugOutput.textContent = cleanedJsonString;
 
-                // Safely parse the JSON string to get the update array
-                const parsedResult = JSON.parse(cleanedJsonString);
-                return parsedResult;
+                return JSON.parse(cleanedJsonString);
 
             } catch (error) {
                 console.error("Error calling Gemini API:", error);
                 llmDebugOutput.textContent = `Error: ${error.message}`;
-                throw new Error("Failed to parse prompt using AI. Check console for details. (Possible JSON format issue.)");
+                throw new Error("Failed to parse prompt using AI. (Possible JSON format issue.)");
             }
         }
 
-        // --- 6. Main Update Handler ---
+        // --- Main Update Handler ---
         window.handleSheetUpdate = async function() {
-            if (isUpdating) return;
+            if (isUpdating || sheetDataState.length === 0) return;
 
             const prompt = promptTextarea.value.trim();
             if (!prompt) {
@@ -367,7 +414,7 @@
             llmDebugOutput.textContent = "Analyzing prompt with Gemini...";
 
             try {
-                // Step 1: Use LLM to parse the complex, multi-row request
+                // Step 1: Use LLM to parse the request into structured updates
                 const parsedResult = await parsePromptWithLLM(prompt);
                 const updates = parsedResult.updates || [];
                 
@@ -375,50 +422,26 @@
                     throw new Error("AI failed to extract any structured update records from the prompt.");
                 }
 
-                let rowsUpdated = 0;
-                let message = `Successfully analyzed **${updates.length}** subject records.`;
+                // Step 2: Send the structured updates to the Vercel Backend for writing
+                buttonText.textContent = "Sending Multi-Row Update to Sheet...";
+                
+                // Call the Vercel Serverless function for writing
+                const response = await withBackoff(() => fetch('/api/sheet-update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ updates: updates })
+                }));
+                
+                const result = await response.json();
 
-                // Step 2: Apply the updates to the mock data
-                updates.forEach(update => {
-                    // Note: CA3/CA4 for labs will be 0 from AI, which we will convert back to null in the data set for display clarity.
-                    const { roll, subject, classes_held, classes_attended, ca1, ca2, ca3, ca4 } = update;
-                    
-                    // The unique key is the combination of roll and subject
-                    const targetRow = SHEET_DATA.find(row => 
-                        row.roll === roll && row.subject === subject
-                    );
-                    
-                    if (targetRow) {
-                        const isLab = targetRow.ca3 === null; // Check if the existing record is a Lab
-                        
-                        if (classes_held !== undefined) targetRow.held = classes_held;
-                        if (classes_attended !== undefined) targetRow.attended = classes_attended;
-                        
-                        targetRow.ca1 = ca1 !== undefined ? ca1 : 0;
-                        targetRow.ca2 = ca2 !== undefined ? ca2 : 0;
-                        
-                        if (!isLab) {
-                            // Only update ca3/ca4 for Theory subjects
-                            targetRow.ca3 = ca3 !== undefined ? ca3 : 0;
-                            targetRow.ca4 = ca4 !== undefined ? ca4 : 0;
-                        } else {
-                            // If it's a lab, ensure ca3/ca4 remain null (even if AI sends 0)
-                            targetRow.ca3 = null; 
-                            targetRow.ca4 = null;
-                        }
-
-                        rowsUpdated++;
-                    } else {
-                        message += `<br>⚠️ Warning: Could not find existing row for ${roll} / ${subject}. No update performed.`;
-                    }
-                });
-
-                if (rowsUpdated > 0) {
-                    renderSheetData();
-                    showMessage(`${message} **${rowsUpdated}** rows updated.`, 'bg-primary/20 text-green-800 border-l-4 border-primary');
-                } else {
-                    showMessage("Analysis complete, but no matching rows were updated. Check the Roll Number and Subject names for exact matches.", 'bg-yellow-100 text-yellow-800 border-l-4 border-secondary');
+                if (!result.success) {
+                    throw new Error(result.error || "Sheet update failed on the server.");
                 }
+                
+                // Step 3: Refetch data to show the new state
+                await fetchSheetData(); 
+
+                showMessage(`✅ Update Successful! ${result.message}`, 'bg-primary/20 text-green-800 border-l-4 border-primary');
 
             } catch (error) {
                 console.error("Update process failed:", error);
@@ -427,71 +450,14 @@
                 // Reset loading state
                 isUpdating = false;
                 updateButton.disabled = false;
-                buttonText.textContent = "Analyze & Perform Multi-Row Update";
+                buttonText.textContent = "Analyze & Update Live Sheet";
                 spinner.classList.add('hidden');
             }
         }
 
-        // Helper function for UI messages
-        function showMessage(text, className) {
-            resultMessage.innerHTML = text;
-            resultMessage.className = `mt-4 p-3 rounded-lg text-sm ${className}`;
-            resultMessage.classList.remove('hidden');
-        }
-
-        // Initialize the app display and pre-fill prompt
-        renderSheetData();
+        // --- Initialization ---
         
-        // Populate the user's prompt into the textarea for convenience
-        promptTextarea.value = `College Roll: CSE/24/063
-Mathematics-III
-Classes held: 20
-Classes attended: 10
-CA1: 23
-CA2: 22
-
-Analog and Digital Electronics
-Classes held: 20
-Classes attended: 10
-CA1: 23
-CA2: 22
-Economics for Engineers
-Classes held: 20
-Classes attended: 10
-CA1: 23
-CA2: 22
-
-Data Structure & Algorithms
-Classes held: 20
-Classes attended: 10
-CA1: 23
-CA2: 22
-
-Computer Organisation
-Classes held: 20
-Classes attended: 10
-CA1: 23
-CA2: 22
-
-Analog and Digital Electronics Lab
-Classes held: 20
-Classes attended: 10
-PCA1: 35
-
-Data Structure & Algorithms Lab
-Classes held: 20
-Classes attended: 10
-PCA1: 35
-
-Computer Organisation Lab
-Classes held: 20
-Classes attended: 10
-PCA1: 35
-
-IT Workshop
-Classes held: 20
-Classes attended: 10
-PCA1: 35`;
+        // Start the process by fetching the live sheet data
+        window.onload = fetchSheetData;
     </script>
-</body>
-</html>
+
