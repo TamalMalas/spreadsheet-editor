@@ -1,0 +1,12 @@
+{
+  "name": "vercel-sheet-editor",
+  "version": "1.0.0",
+  "description": "Secure Vercel backend for Google Sheets API",
+  "main": "index.js",
+  "scripts": {
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "googleapis": "^129.0.0"
+  }
+}
