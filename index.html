@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Sheet Editor Simulator</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure Tailwind for Inter font and custom colors -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#059669', // Darker Emerald for Academic feel
+                        secondary: '#FBBF24', // Amber Yellow
+                        darkbg: '#1F2937', // Dark Gray
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F3F4F6;
+        }
+        .container-card {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .update-button {
+            transition: all 0.15s ease-in-out;
+        }
+        .update-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.4), 0 2px 4px -1px rgba(5, 150, 105, 0.2);
+        }
+        .table-data-cell {
+            min-width: 60px;
+            text-align: right;
+        }
+        .table-data-cell-center {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container-card">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">AI Academic Record Editor (Simulator)</h1>
+            <p class="text-sm text-gray-500 mt-1">Simulating complex academic sheet structure for multi-row updates.</p>
+        </header>
+
+        <!-- Google Sheets API Limitation Note -->
+        <div class="p-4 mb-6 bg-blue-100 border-l-4 border-blue-500 rounded-lg text-sm text-gray-700">
+            <p class="font-semibold">⚙️ Public Connection Mode (Simulated):</p>
+            <p>Authorization is granted automatically (simulating a Service Account with public write permissions). Use the **Fetch Sheet Preview** button below to simulate checking the connection.</p>
+        </div>
+
+        <section class="flex flex-col md:flex-row gap-6 mb-8">
+            <!-- Input Panel -->
+            <div class="md:w-1/2">
+                
+                <!-- 1. Connection -->
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">1. Sheet Connection (Auto-Authorized)</h3>
+                
+                <div class="mb-6 flex items-end gap-2">
+                    <div class="flex-grow">
+                        <label for="sheetLink" class="block text-sm font-medium text-gray-700 mb-1">Sheet Link (Paste the full link here)</label>
+                        <input type="text" id="sheetLink" value="https://docs.google.com/spreadsheets/d/mock-academic-sheet"
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary bg-gray-50">
+                    </div>
+                    <button onclick="fetchSheetPreview()" id="previewButton"
+                        class="update-button bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold h-[46px] whitespace-nowrap">
+                        Fetch Sheet Preview
+                    </button>
+                </div>
+
+
+                <!-- 2. Prompt Section -->
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">2. Update Prompt</h3>
+                <div class="mb-4">
+                    <label for="promptText" class="block text-sm font-medium text-gray-700 mb-1">Paste your academic data dump here</label>
+                    <textarea id="promptText" rows="10"
+                        placeholder="e.g., 'College Roll: CSE/24/063... [paste your academic data structure]'"
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary resize-none"></textarea>
+                </div>
+                
+                <button onclick="handleSheetUpdate()" id="updateButton"
+                    class="update-button w-full bg-primary text-white py-3 rounded-lg font-semibold flex items-center justify-center">
+                    <span id="buttonText">Analyze & Perform Multi-Row Update</span>
+                    <svg id="spinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+
+                <!-- Result Message Box -->
+                <div id="resultMessage" class="mt-4 p-3 hidden rounded-lg text-sm"></div>
+            </div>
+
+            <!-- Simulated Sheet Data Display -->
+            <div class="md:w-1/2">
+                <h2 class="text-lg font-semibold text-gray-800 mb-3">Simulated Academic Sheet Data</h2>
+                <div id="sheetDataDisplay" class="bg-gray-50 p-4 border border-gray-200 rounded-lg overflow-x-auto max-h-[450px]">
+                    <!-- Table will be rendered here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Debug Area for LLM Output -->
+        <section class="mt-6 border-t pt-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-3">LLM Output Analysis (JSON Response)</h3>
+            <pre id="llmDebugOutput" class="bg-darkbg text-green-300 p-4 rounded-lg text-xs overflow-x-auto">Waiting for prompt...</pre>
+        </section>
+    </div>
+
+    <script type="module">
+        // Global variables provided by the Canvas environment for authentication
+        const apiKey = "";
+        const API_URL_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent';
+        
+        // --- 1. MOCK SHEET DATA (Simulated Google Sheet Content - New Academic Structure) ---
+        // Internal schema uses ca1-ca4 for all assessments, with null/0 for unused fields
+        let SHEET_DATA = [
+            // Dummy data for a different student
+            { roll: 'CSE/24/001', subject: 'Mathematics-III', held: 20, attended: 15, ca1: 20, ca2: 20, ca3: 15, ca4: 15 },
+            { roll: 'CSE/24/001', subject: 'IT Workshop', held: 20, attended: 18, ca1: 30, ca2: 30, ca3: null, ca4: null },
+            // Data for the target student (initial state - all zero/null)
+            { roll: 'CSE/24/063', subject: 'Mathematics-III', held: 20, attended: 0, ca1: 0, ca2: 0, ca3: 0, ca4: 0 },
+            { roll: 'CSE/24/063', subject: 'Analog and Digital Electronics', held: 20, attended: 0, ca1: 0, ca2: 0, ca3: 0, ca4: 0 },
+            { roll: 'CSE/24/063', subject: 'Economics for Engineers', held: 20, attended: 0, ca1: 0, ca2: 0, ca3: 0, ca4: 0 },
+            { roll: 'CSE/24/063', subject: 'Data Structure & Algorithms', held: 20, attended: 0, ca1: 0, ca2: 0, ca3: 0, ca4: 0 },
+            { roll: 'CSE/24/063', subject: 'Computer Organisation', held: 20, attended: 0, ca1: 0, ca2: 0, ca3: 0, ca4: 0 },
+            // Lab Subjects: ca3/ca4 fields are NULL, ca1/ca2 hold PCA1/PCA2
+            { roll: 'CSE/24/063', subject: 'Analog and Digital Electronics Lab', held: 20, attended: 0, ca1: 0, ca2: 0, ca3: null, ca4: null },
+            { roll: 'CSE/24/063', subject: 'Data Structure & Algorithms Lab', held: 20, attended: 0, ca1: 0, ca2: 0, ca3: null, ca4: null },
+            { roll: 'CSE/24/063', subject: 'Computer Organisation Lab', held: 20, attended: 0, ca1: 0, ca2: 0, ca3: null, ca4: null },
+            { roll: 'CSE/24/063', subject: 'IT Workshop', held: 20, attended: 0, ca1: 0, ca2: 0, ca3: null, ca4: null },
+        ];
+
+        // --- 2. UI Elements & State ---
+        const sheetDataDisplay = document.getElementById('sheetDataDisplay');
+        const promptTextarea = document.getElementById('promptText');
+        const updateButton = document.getElementById('updateButton');
+        const buttonText = document.getElementById('buttonText');
+        const spinner = document.getElementById('spinner');
+        const resultMessage = document.getElementById('resultMessage');
+        const llmDebugOutput = document.getElementById('llmDebugOutput');
+        const previewButton = document.getElementById('previewButton');
+
+        let isUpdating = false;
+        let isPreviewing = false;
+        // Public sheet means we assume it's authorized from the start
+        let isAuthorized = true; 
+
+        // --- 3. Rendering Function ---
+        function renderSheetData() {
+            let html = `
+                <table class="min-w-full divide-y divide-gray-200 text-left">
+                    <thead class="bg-gray-100 sticky top-0">
+                        <tr>
+                            <th class="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">Roll</th>
+                            <th class="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">Subject</th>
+                            <th class="px-3 py-2 table-data-cell text-xs font-medium text-gray-500 uppercase tracking-wider">Held</th>
+                            <th class="px-3 py-2 table-data-cell text-xs font-medium text-gray-500 uppercase tracking-wider">Attended</th>
+                            <th class="px-3 py-2 table-data-cell text-xs font-medium text-gray-500 uppercase tracking-wider">%</th>
+                            <th class="px-3 py-2 table-data-cell text-xs font-medium text-gray-500 uppercase tracking-wider">CA1/PCA1</th>
+                            <th class="px-3 py-2 table-data-cell text-xs font-medium text-gray-500 uppercase tracking-wider">CA2/PCA2</th>
+                            <th class="px-3 py-2 table-data-cell text-xs font-medium text-gray-500 uppercase tracking-wider">CA3</th>
+                            <th class="px-3 py-2 table-data-cell text-xs font-medium text-gray-500 uppercase tracking-wider">CA4</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+            `;
+            SHEET_DATA.forEach(row => {
+                const attendancePercentage = row.held > 0 ? ((row.attended / row.held) * 100).toFixed(0) : 0;
+                const attendanceColor = attendancePercentage < 75 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800';
+
+                // Display logic based on subject type (Theory vs Lab)
+                const isLab = row.ca3 === null; 
+
+                html += `
+                    <tr class="${row.roll === 'CSE/24/063' ? 'bg-indigo-50/50' : ''}">
+                        <td class="px-3 py-2 whitespace-nowrap text-xs font-medium text-gray-900">${row.roll}</td>
+                        <td class="px-3 py-2 text-sm text-gray-700">${row.subject}</td>
+                        <td class="px-3 py-2 table-data-cell text-sm text-gray-500">${row.held}</td>
+                        <td class="px-3 py-2 table-data-cell whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${attendanceColor}">
+                                ${row.attended}
+                            </span>
+                        </td>
+                        <td class="px-3 py-2 table-data-cell text-sm text-gray-500">${attendancePercentage}%</td>
+                        <td class="px-3 py-2 table-data-cell text-sm text-gray-500">${row.ca1}</td>
+                        <td class="px-3 py-2 table-data-cell text-sm text-gray-500">${row.ca2}</td>
+                        <td class="px-3 py-2 table-data-cell text-sm text-gray-500">${isLab ? '-' : row.ca3}</td>
+                        <td class="px-3 py-2 table-data-cell text-sm text-gray-500">${isLab ? '-' : row.ca4}</td>
+                    </tr>
+                `;
+            });
+            html += `
+                    </tbody>
+                </table>
+            `;
+            sheetDataDisplay.innerHTML = html;
+        }
+
+        // --- 4. Simulated Preview Function ---
+        window.fetchSheetPreview = function() {
+            if (isPreviewing) return;
+
+            const sheetLink = document.getElementById('sheetLink').value;
+
+            isPreviewing = true;
+            previewButton.disabled = true;
+            previewButton.textContent = "Fetching...";
+            showMessage("Simulating secure connection to Google Sheets...", 'bg-yellow-100 text-yellow-800 border-l-4 border-secondary');
+
+            // Simulate network latency (2 seconds)
+            setTimeout(() => {
+                // In a real application, you would use the Sheets API (spreadsheets.get) here.
+                
+                isPreviewing = false;
+                previewButton.disabled = false;
+                previewButton.textContent = "Fetch Sheet Preview";
+
+                showMessage(`✅ Connection successful! Retrieved sheet metadata from: **${sheetLink}**. Ready to analyze prompt.`, 'bg-green-100 text-green-800 border-l-4 border-green-500');
+
+            }, 2000); 
+        }
+
+        // --- 5. Gemini API Call and Logic (Parser) ---
+        
+        // Exponential backoff helper for fetch retries
+        const withBackoff = async (fn, retries = 5, delay = 1000) => {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    return await fn();
+                } catch (error) {
+                    if (i === retries - 1) throw error;
+                    await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, i)));
+                }
+            }
+        };
+
+        async function parsePromptWithLLM(prompt) {
+            const apiUrl = `${API_URL_BASE}?key=${apiKey}`;
+
+            // Updated System Instruction for the complex structure
+            const systemInstruction = `You are a specialized academic data parser for a university grade sheet. The user provides raw text data for a student, identified by 'College Roll', broken down by subject.
+            
+            Target Sheet Columns (Internal Mapping): 'roll', 'subject', 'classes_held', 'classes_attended', 'ca1', 'ca2', 'ca3', 'ca4'.
+            
+            Mapping Rules:
+            1. Roll Number: Must be consistent for all subjects.
+            2. Classes Held: If specified, use the number. If not, use the previous value (20 is the default).
+            3. Classes Attended: Map directly.
+            4. Theory Subjects (e.g., Mathematics-III, Computer Organisation): Map 'CA1' to 'ca1', 'CA2' to 'ca2', 'CA3' to 'ca3', 'CA4' to 'ca4'.
+            5. Lab Subjects (end with 'Lab' or 'Workshop'): Map 'PCA1' to 'ca1' and 'PCA2' to 'ca2'. For these subjects, set 'ca3' and 'ca4' to 0, as they are not used.
+            6. Missing Fields: If the prompt omits an assessment field (e.g., CA3 or PCA2), set its corresponding output field (ca3 or ca2) to 0.
+
+            Your output must be a JSON array of update objects that strictly adheres to the provided schema.`;
+            
+            // Define the JSON schema for structured output (must include all 8 fields)
+            const responseSchema = {
+                type: "OBJECT",
+                properties: {
+                    "updates": {
+                        "type": "ARRAY",
+                        "description": "An array of subject records to update.",
+                        "items": {
+                            "type": "OBJECT",
+                            "properties": {
+                                "roll": { "type": "STRING", "description": "The student's roll number (e.g., 'CSE/24/063')." },
+                                "subject": { "type": "STRING", "description": "The subject title exactly as written in the prompt." },
+                                "classes_held": { "type": "INTEGER", "description": "The number of classes held." },
+                                "classes_attended": { "type": "INTEGER", "description": "The number of classes attended." },
+                                "ca1": { "type": "INTEGER", "description": "The mark for the first assessment (CA1 or PCA1)." },
+                                "ca2": { "type": "INTEGER", "description": "The mark for the second assessment (CA2 or PCA2)." },
+                                "ca3": { "type": "INTEGER", "description": "The mark for the third assessment (CA3 - 0 for Labs)." },
+                                "ca4": { "type": "INTEGER", "description": "The mark for the fourth assessment (CA4 - 0 for Labs)." }
+                            },
+                            "required": ["roll", "subject", "classes_held", "classes_attended"],
+                            "propertyOrdering": ["roll", "subject", "classes_held", "classes_attended", "ca1", "ca2", "ca3", "ca4"]
+                        }
+                    }
+                }
+            };
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: systemInstruction }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: responseSchema
+                }
+            };
+
+            try {
+                const response = await withBackoff(() => fetch(`${apiUrl}?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }));
+                
+                if (!response.ok) {
+                    throw new Error(`API response status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                if (!result.candidates || result.candidates.length === 0) {
+                    throw new Error("Gemini returned no candidates.");
+                }
+
+                const jsonString = result.candidates[0].content.parts[0].text;
+                
+                // *** FIX: Clean up markdown fences from the LLM output for robust JSON parsing ***
+                let cleanedJsonString = jsonString.trim();
+                // Remove outer markdown code block (```json ... ```)
+                if (cleanedJsonString.startsWith('```')) {
+                    // This regex handles ````json` and ```` at the start/end
+                    cleanedJsonString = cleanedJsonString.replace(/```json\s*/, '').replace(/```$/, '');
+                }
+                cleanedJsonString = cleanedJsonString.trim();
+                // *** END FIX ***
+                
+                // Display raw LLM output for debugging
+                llmDebugOutput.textContent = cleanedJsonString;
+
+                // Safely parse the JSON string to get the update array
+                const parsedResult = JSON.parse(cleanedJsonString);
+                return parsedResult;
+
+            } catch (error) {
+                console.error("Error calling Gemini API:", error);
+                llmDebugOutput.textContent = `Error: ${error.message}`;
+                throw new Error("Failed to parse prompt using AI. Check console for details. (Possible JSON format issue.)");
+            }
+        }
+
+        // --- 6. Main Update Handler ---
+        window.handleSheetUpdate = async function() {
+            if (isUpdating) return;
+
+            const prompt = promptTextarea.value.trim();
+            if (!prompt) {
+                showMessage("Please enter an update prompt.", 'bg-red-100 text-red-800');
+                return;
+            }
+
+            // Set loading state
+            isUpdating = true;
+            updateButton.disabled = true;
+            buttonText.textContent = "Analyzing & Mapping Records...";
+            spinner.classList.remove('hidden');
+            resultMessage.classList.add('hidden');
+            llmDebugOutput.textContent = "Analyzing prompt with Gemini...";
+
+            try {
+                // Step 1: Use LLM to parse the complex, multi-row request
+                const parsedResult = await parsePromptWithLLM(prompt);
+                const updates = parsedResult.updates || [];
+                
+                if (updates.length === 0) {
+                    throw new Error("AI failed to extract any structured update records from the prompt.");
+                }
+
+                let rowsUpdated = 0;
+                let message = `Successfully analyzed **${updates.length}** subject records.`;
+
+                // Step 2: Apply the updates to the mock data
+                updates.forEach(update => {
+                    // Note: CA3/CA4 for labs will be 0 from AI, which we will convert back to null in the data set for display clarity.
+                    const { roll, subject, classes_held, classes_attended, ca1, ca2, ca3, ca4 } = update;
+                    
+                    // The unique key is the combination of roll and subject
+                    const targetRow = SHEET_DATA.find(row => 
+                        row.roll === roll && row.subject === subject
+                    );
+                    
+                    if (targetRow) {
+                        const isLab = targetRow.ca3 === null; // Check if the existing record is a Lab
+                        
+                        if (classes_held !== undefined) targetRow.held = classes_held;
+                        if (classes_attended !== undefined) targetRow.attended = classes_attended;
+                        
+                        targetRow.ca1 = ca1 !== undefined ? ca1 : 0;
+                        targetRow.ca2 = ca2 !== undefined ? ca2 : 0;
+                        
+                        if (!isLab) {
+                            // Only update ca3/ca4 for Theory subjects
+                            targetRow.ca3 = ca3 !== undefined ? ca3 : 0;
+                            targetRow.ca4 = ca4 !== undefined ? ca4 : 0;
+                        } else {
+                            // If it's a lab, ensure ca3/ca4 remain null (even if AI sends 0)
+                            targetRow.ca3 = null; 
+                            targetRow.ca4 = null;
+                        }
+
+                        rowsUpdated++;
+                    } else {
+                        message += `<br>⚠️ Warning: Could not find existing row for ${roll} / ${subject}. No update performed.`;
+                    }
+                });
+
+                if (rowsUpdated > 0) {
+                    renderSheetData();
+                    showMessage(`${message} **${rowsUpdated}** rows updated.`, 'bg-primary/20 text-green-800 border-l-4 border-primary');
+                } else {
+                    showMessage("Analysis complete, but no matching rows were updated. Check the Roll Number and Subject names for exact matches.", 'bg-yellow-100 text-yellow-800 border-l-4 border-secondary');
+                }
+
+            } catch (error) {
+                console.error("Update process failed:", error);
+                showMessage(`Update Failed: ${error.message}`, 'bg-red-100 text-red-800 border-l-4 border-red-500');
+            } finally {
+                // Reset loading state
+                isUpdating = false;
+                updateButton.disabled = false;
+                buttonText.textContent = "Analyze & Perform Multi-Row Update";
+                spinner.classList.add('hidden');
+            }
+        }
+
+        // Helper function for UI messages
+        function showMessage(text, className) {
+            resultMessage.innerHTML = text;
+            resultMessage.className = `mt-4 p-3 rounded-lg text-sm ${className}`;
+            resultMessage.classList.remove('hidden');
+        }
+
+        // Initialize the app display and pre-fill prompt
+        renderSheetData();
+        
+        // Populate the user's prompt into the textarea for convenience
+        promptTextarea.value = `College Roll: CSE/24/063
+Mathematics-III
+Classes held: 20
+Classes attended: 10
+CA1: 23
+CA2: 22
+
+Analog and Digital Electronics
+Classes held: 20
+Classes attended: 10
+CA1: 23
+CA2: 22
+Economics for Engineers
+Classes held: 20
+Classes attended: 10
+CA1: 23
+CA2: 22
+
+Data Structure & Algorithms
+Classes held: 20
+Classes attended: 10
+CA1: 23
+CA2: 22
+
+Computer Organisation
+Classes held: 20
+Classes attended: 10
+CA1: 23
+CA2: 22
+
+Analog and Digital Electronics Lab
+Classes held: 20
+Classes attended: 10
+PCA1: 35
+
+Data Structure & Algorithms Lab
+Classes held: 20
+Classes attended: 10
+PCA1: 35
+
+Computer Organisation Lab
+Classes held: 20
+Classes attended: 10
+PCA1: 35
+
+IT Workshop
+Classes held: 20
+Classes attended: 10
+PCA1: 35`;
+    </script>
+</body>
+</html>
